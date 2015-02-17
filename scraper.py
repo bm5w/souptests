@@ -1,5 +1,6 @@
 from bs4 import BeautifulSoup
 import requests
+import os
 soup = BeautifulSoup()
 
 
@@ -34,3 +35,10 @@ def get_inspection_page(**kwargs):
     resp = requests.get(url, params=params)
     resp.raise_for_status()
     return resp.content, resp.encoding
+
+
+def load_inspection_page():
+    """Returns html in load_inspection.html and encoding."""
+    with open('load_inspection.html', 'r') as infile:
+        html = infile.read()
+    return html, 'utf-8'
