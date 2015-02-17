@@ -1,6 +1,7 @@
 from bs4 import BeautifulSoup
 import requests
 import sys
+import re
 
 
 INSPECTION_DOMAIN = 'http://info.kingcounty.gov'
@@ -43,8 +44,22 @@ def load_inspection_page(file):
         html = infile.read()
     return html, 'utf-8'
 
+
 def parse_source(html, encoding='utf-8'):
     return BeautifulSoup(html, from_encoding=encoding)
+
+
+def extract_data_listing(html):
+    """Extract listing for each restaurant."""
+    id_finder = re.compile(r'PR[\d]+~')
+    return html.find_all('div', id=id_finder)
+
+
+def has_two_tds(elem):
+    is_tr = elem.name == 'tr'
+    td_children = elem.find_all('td', recursive=False)
+    has_two = len(td_children) == 2
+    return is_tr and has_two
 
 
 if __name__ == '__main__':
@@ -58,4 +73,7 @@ if __name__ == '__main__':
     else:
         html, encoding = get_inspection_page(**kwargs)
     doc = parse_source(html, encoding)
-    print doc.prettify(encoding=encoding)
+    listings = extract_data_listing(doc)
+    for listing in listings:
+        metadata_rows = listing.find('tbody').find_all(has_two_tds, recursive=False)
+        print len(metadata_rows)
