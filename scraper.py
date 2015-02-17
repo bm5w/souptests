@@ -95,6 +95,29 @@ def is_inspection_row(elem):
     return is_tr and has_four and contains_word and does_not_start
 
 
+def extract_score_data(elem):
+    inspection_rows = elem.find_all(is_inspection_row)
+    samples = len(inspection_rows)
+    total = high_score = average = 0
+    for row in inspection_rows:
+        strval = clean_data(row.find_all('td')[2])
+        try:
+            intval = int(strval)
+        except (ValueError, TypeError):
+            samples -= 1
+        else:
+            total += intval
+            high_score = intval if intval > high_score else high_score
+    if samples:
+        average = total/float(samples)
+    data = {
+        u'Average Score': average,
+        u'High Score': high_score,
+        u'Total Inspections': samples
+    }
+    return data
+
+
 if __name__ == '__main__':
     kwargs = {
         'Inspection_Start': '2/1/2013',
@@ -109,9 +132,9 @@ if __name__ == '__main__':
     listings = extract_data_listing(doc)
     for listing in listings[:5]:
         metadata = extract_restaurant_metadata(listing)
-        inspection_rows = listing.find_all(is_inspection_row)
-        for row in inspection_rows:
-            print row.text
+        score_data = extract_score_data(listing)
+        metadata.update(score_data)
+        print metadata
 
 
 
