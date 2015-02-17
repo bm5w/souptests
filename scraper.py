@@ -130,11 +130,15 @@ if __name__ == '__main__':
         html, encoding = get_inspection_page(**kwargs)
     doc = parse_source(html, encoding)
     listings = extract_data_listing(doc)
-    for listing in listings[:5]:
-        metadata = extract_restaurant_metadata(listing)
-        score_data = extract_score_data(listing)
-        metadata.update(score_data)
-        print metadata
+
+    with open('final_output.txt', 'w') as outfile:
+        for listing in listings[:]:
+            metadata = extract_restaurant_metadata(listing)
+            score_data = extract_score_data(listing)
+            metadata.update(score_data)
+            print metadata
+            outfile.write("{}\n".format(metadata))
+        outfile.close()
 
 
 
