@@ -1,6 +1,6 @@
 from bs4 import BeautifulSoup
 import requests
-import os
+import sys
 
 
 INSPECTION_DOMAIN = 'http://info.kingcounty.gov'
@@ -37,9 +37,9 @@ def get_inspection_page(**kwargs):
     return resp.content, resp.encoding
 
 
-def load_inspection_page():
+def load_inspection_page(file):
     """Returns html in load_inspection.html and encoding."""
-    with open('load_inspection.html', 'r') as infile:
+    with open(file, 'r') as infile:
         html = infile.read()
     return html, 'utf-8'
 
@@ -47,7 +47,15 @@ def parse_source(html, encoding='utf-8'):
     return BeautifulSoup(html, from_encoding=encoding)
 
 
-
-
-
-
+if __name__ == '__main__':
+    kwargs = {
+        'Inspection_Start': '2/1/2013',
+        'Inspection_End': '2/1/2015',
+        'Zip_Code': '98109'
+    }
+    if len(sys.argv) > 1 and sys.argv[1] == 'test':
+        html, encoding = load_inspection_page('load_inspection.html')
+    else:
+        html, encoding = get_inspection_page(**kwargs)
+    doc = parse_source(html, encoding)
+    print doc.prettify(encoding=encoding)
