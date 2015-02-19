@@ -46,11 +46,14 @@ def load_inspection_page(file):
 
 
 def parse_source(html, encoding='utf-8'):
+    """Decode byte string a tree of python objects or tags."""
     return BeautifulSoup(html, from_encoding=encoding)
 
 
 def extract_data_listing(html):
-    """Extract listing for each restaurant."""
+    """Extract listing for each restaurant.
+    That includes a div tag, and any string that starts with PR, any digits
+    with length greater than one and ends with ~."""
     id_finder = re.compile(r'PR[\d]+~')
     return html.find_all('div', id=id_finder)
 
@@ -63,7 +66,7 @@ def has_two_tds(elem):
 
 
 def clean_data(td):
-    """Remove extraneous characters."""
+    """Remove extraneous characters from visible string."""
     data = td.string
     try:
         return data.strip(" \n:-")
@@ -72,18 +75,24 @@ def clean_data(td):
 
 
 def extract_restaurant_metadata(elem):
+    """Extract restaurant metadata, where each row contains one restaurant."""
     metadata_rows = elem.find('tbody').find_all(has_two_tds, recursive=False)
     rdata = {}
     current_label = ''
     for row in metadata_rows:
+        # there should be two td elements, b/c we filtered above has_two_tds
         key_cell, val_cell = row.find_all('td', recursive=False)
         new_label = clean_data(key_cell)
         current_label = new_label if new_label else current_label
+        # if the key doesn't exist, put empty list into value
+        # if it doesn't exist append value to existing list
         rdata.setdefault(current_label, []).append(clean_data(val_cell))
     return rdata
 
 
 def is_inspection_row(elem):
+    """Filter if contains tr, 4 children, contains inspection, and
+    does not start with inspection. Returns booleans."""
     is_tr = elem.name == 'tr'
     if not is_tr:
         return False
@@ -96,6 +105,7 @@ def is_inspection_row(elem):
 
 
 def extract_score_data(elem):
+    """Get average, high and num of inspections from each restaurant element."""
     inspection_rows = elem.find_all(is_inspection_row)
     samples = len(inspection_rows)
     total = high_score = average = 0
@@ -132,24 +142,9 @@ if __name__ == '__main__':
     listings = extract_data_listing(doc)
 
     with open('final_output.txt', 'w') as outfile:
-        for listing in listings[:]:
+        for listing in listings[:5]:
             metadata = extract_restaurant_metadata(listing)
             score_data = extract_score_data(listing)
             metadata.update(score_data)
-            print metadata
             outfile.write("{}\n".format(metadata))
         outfile.close()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
