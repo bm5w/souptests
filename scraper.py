@@ -182,7 +182,8 @@ def sort_(total_result, sort='average', reverse=False):
 
 if __name__ == '__main__':
     import pprint
-
+    """User must included arguments, sort (average, highscore or most),
+    num, and reverse(anything but reverse won't reverse)."""
     parser = argparse.ArgumentParser()
     parser.add_argument('sort')
     parser.add_argument('num', type=int)
@@ -196,8 +197,7 @@ if __name__ == '__main__':
     for result in generate_results(count=args.num):
         geo_result = get_geojson(result)
         total_result['features'].append(geo_result)
-    pprint.pprint('xxx: {}'.format(total_result['features']))
+    # Sort according to user specificaitons
     total_result['features'] = sort_(total_result['features'], args.sort, reverse)
-    pprint.pprint('xxx: {}'.format(total_result['features']))
     with open('my_map.json', 'w') as fh:
         json.dump(total_result, fh)
